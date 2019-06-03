@@ -16,5 +16,5 @@ setuptools.setup(
     author='Pedro Otávio',
     author_email='p.o.maxado@gmail.com',
     long_description=long_description,
-    description='Push-Relable algorithm with FIFO implementation to solve maximum flow problem in a directed graph.'
+    description='Push-Relable algorithms with FIFO implementation to solve maximum flow problem in a directed graph.'
 )
