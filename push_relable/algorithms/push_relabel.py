@@ -7,34 +7,34 @@ import numpy as np
 from push_relable.classes import Graph
 
 
-def _init_preflow(g, s, active_nodes):
+def _init_preflow(res_g, s, active_nodes):
     """
 
     Parameters
     ----------
-    g : Graph
+    res_g : Graph
     s : int
-    active_nodes : list
+    active_nodes : (list)
 
     Returns
     -------
 
     """
 
-    for v in g.adj[s]:
-        g.adj[s][v]['flow'] = g.adj[s][v]['cap']
-        g.nodes[v]['excess'] = g.adj[s][v]['cap']
-        g.nodes[s]['excess'] = g.nodes[s]['excess'] - g.adj[s][v]['cap']
+    for v in res_g.adj[s]:
+        res_g.adj[s][v]['flow'] = res_g.adj[s][v]['cap']
+        res_g.nodes[v]['excess'] = res_g.adj[s][v]['cap']
+        res_g.nodes[s]['excess'] = res_g.nodes[s]['excess'] - res_g.adj[s][v]['cap']
 
         active_nodes.append(v)
 
 
-def  _init_height(g, s, t):
+def _init_height(res_g, s, t):
     """
 
     Parameters
     ----------
-    g
+    res_g
     s
     t
 
@@ -44,30 +44,47 @@ def  _init_height(g, s, t):
     """
 
     queue = []
-    visited = [False] * g.size
+    visited = [False] * res_g.size
 
     visited[t] = True
-    g.nodes[t]['height'] = 0
+    res_g.nodes[t]['height'] = 0
     queue.append(t)
 
     while queue:
         u = queue.pop(0)
 
-        for v in g.adj[u]:
+        for v in res_g.adj[u]:
             if not visited[v]:
                 queue.append(v)
-                g.nodes[v]['height'] = g.nodes[u]['height'] + 1
+                res_g.nodes[v]['height'] = res_g.nodes[u]['height'] + 1
                 visited[v] = True
 
-    g.nodes[s]['height'] = g.size
+    res_g.nodes[s]['height'] = res_g.size
 
 
-def _push(g, edge):
-    pass
+def _push(res_g, u, v, s, t, active_nodes):
+
+    edge = res_g.adj[u][v]
+
+    amount = min(res_g.nodes[u]['excess'], edge['cap'] - edge['flow'])
+
+    edge[u][v]['flow'] += amount
+    edge[v][u]['flow'] -= amount
+
+    if res_g.nodes[v]['excess'] == 0 and v not in [s, t]:
+        active_nodes.append(v)
+
+    res_g.nodes[u]['excess'] -= amount
+    res_g.nodes[v]['excess'] += amount
 
 
-def _relabel(g, v):
-    pass
+def _relabel(res_g, v):
+
+    min_h = np.inf
+
+    # TODO: implementar relabel
+
+    res_g.nodes[v]['height'] = min_h
 
 
 def _discharge(g, v, active_nodes):
@@ -104,7 +121,7 @@ def push_relabel(g, s, t):
     for e in res_g.edges:
         print(e)
 
-    #while active_nodes:
+    # while active_nodes:
 
     #    v = active_nodes.pop(0)
 
@@ -142,7 +159,6 @@ def build_residual_graph(g):
 
 
 if __name__ == '__main__':
-
     g = Graph(size=5)
 
     g.add_edge(0, 1, cap=12)
