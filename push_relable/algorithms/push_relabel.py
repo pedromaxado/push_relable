@@ -78,13 +78,14 @@ def _push(res_g, u, v, s, t, active_nodes):
     res_g.nodes[v]['excess'] += amount
 
 
-def _relabel(res_g, v):
+def _relabel(res_g, u):
 
     min_h = np.inf
 
-    # TODO: implementar relabel
+    for v in g.adj[u]:  # verificar se n tem q olhar os arcos de volta (v, u)
+        min_h = min(min_h, g.nodes[v]['height'])
 
-    res_g.nodes[v]['height'] = min_h
+    res_g.nodes[u]['height'] = min_h + 1
 
 
 def _discharge(g, v, active_nodes):
