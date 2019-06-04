@@ -9,6 +9,8 @@ class Graph:
 
     """
 
+    _size = None
+
     def __init__(self, size):
         """
 
@@ -41,6 +43,14 @@ class Graph:
             return v in self.adj[u]
         except KeyError:
             return False
+
+    @property
+    def size(self):
+        return self._size
+
+    @size.setter
+    def size(self, value):
+        self._size = value
 
     @property
     def edges(self):
