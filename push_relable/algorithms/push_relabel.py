@@ -82,8 +82,8 @@ def _relabel(res_g, u):
 
     min_h = np.inf
 
-    for v in g.adj[u]:  # verificar se n tem q olhar os arcos de volta (v, u)
-        min_h = min(min_h, g.nodes[v]['height'])
+    for v in res_g.adj[u]:  # verificar se n tem q olhar os arcos de volta (v, u)
+        min_h = min(min_h, res_g.nodes[v]['height'])
 
     res_g.nodes[u]['height'] = min_h + 1
 
