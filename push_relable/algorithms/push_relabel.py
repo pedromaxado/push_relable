@@ -7,6 +7,25 @@ import numpy as np
 from push_relable.classes import Graph
 
 
+def _is_edge_valid(res_g, u, v):
+    """
+
+    Parameters
+    ----------
+    res_g : Graph
+    u : int
+    v : int
+
+    Returns
+    -------
+
+    """
+
+    residual_cap = res_g.adj[u][v]['cap'] - res_g.adj[u][v]['flow']
+
+    return residual_cap > 0 and res_g.nodes[u]['height'] == res_g.nodes[v]['height'] + 1
+
+
 def _init_preflow(res_g, s, active_nodes):
     """
 
@@ -23,6 +42,7 @@ def _init_preflow(res_g, s, active_nodes):
 
     for v in res_g.adj[s]:
         res_g.adj[s][v]['flow'] = res_g.adj[s][v]['cap']
+        res_g.adj[v][s]['flow'] = -res_g.adj[s][v]['cap']
         res_g.nodes[v]['excess'] = res_g.adj[s][v]['cap']
         res_g.nodes[s]['excess'] = res_g.nodes[s]['excess'] - res_g.adj[s][v]['cap']
 
@@ -68,8 +88,8 @@ def _push(res_g, u, v, s, t, active_nodes):
 
     amount = min(res_g.nodes[u]['excess'], edge['cap'] - edge['flow'])
 
-    edge[u][v]['flow'] += amount
-    edge[v][u]['flow'] -= amount
+    res_g.adj[u][v]['flow'] += amount
+    res_g.adj[v][u]['flow'] -= amount
 
     if res_g.nodes[v]['excess'] == 0 and v not in [s, t]:
         active_nodes.append(v)
@@ -83,7 +103,8 @@ def _relabel(res_g, u):
     min_h = np.inf
 
     for v in res_g.adj[u]:  # verificar se n tem q olhar os arcos de volta (v, u)
-        min_h = min(min_h, res_g.nodes[v]['height'])
+        if res_g.adj[u][v]['cap'] - res_g.adj[u][v]['flow'] > 0:
+            min_h = min(min_h, res_g.nodes[v]['height'])
 
     res_g.nodes[u]['height'] = min_h + 1
 
@@ -110,22 +131,15 @@ def push_relabel(g, s, t):
     _init_preflow(res_g, s, active_nodes)
     _init_height(res_g, s, t)
 
-    for idx, v in enumerate(res_g.nodes):
-        print(idx, v)
-
-    print()
-
-    for e in res_g.edges:
-        print(e)
-
     while active_nodes:
 
         u = active_nodes.pop(0)
 
         for v in res_g.adj[u]:
-            _push(res_g, u, v, s, t, active_nodes)
+            if _is_edge_valid(res_g, u, v):
+                _push(res_g, u, v, s, t, active_nodes)
 
-        if res_g.nodes[u] > 0:
+        if res_g.nodes[u]['excess'] > 0:
             _relabel(res_g, u)
             active_nodes.append(u)
 
@@ -157,18 +171,3 @@ def build_residual_graph(g):
             res_g.add_edge(u, v, cap=datadict['cap'], flow=0)
 
     return res_g
-
-
-if __name__ == '__main__':
-    g_ex = Graph(size=5)
-
-    g_ex.add_edge(0, 1, cap=12)
-    g_ex.add_edge(0, 2, cap=14)
-    g_ex.add_edge(1, 2, cap=5)
-    g_ex.add_edge(1, 3, cap=8)
-    g_ex.add_edge(2, 3, cap=8)
-    g_ex.add_edge(3, 4, cap=10)
-    g_ex.add_edge(1, 4, cap=16)
-    g_ex.add_edge(3, 1, cap=7)
-
-    push_relabel(g_ex, s=0, t=4)
