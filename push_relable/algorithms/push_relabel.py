@@ -88,10 +88,6 @@ def _relabel(res_g, u):
     res_g.nodes[u]['height'] = min_h + 1
 
 
-def _discharge(g, v, active_nodes):
-    pass
-
-
 def push_relabel(g, s, t):
     """
 
@@ -122,12 +118,16 @@ def push_relabel(g, s, t):
     for e in res_g.edges:
         print(e)
 
-    # while active_nodes:
+    while active_nodes:
 
-    #    v = active_nodes.pop(0)
+        u = active_nodes.pop(0)
 
-    #    if res_g.nodes[v]['excess'] > 0:
-    #        _discharge(res_g, v, active_nodes)
+        for v in res_g.adj[u]:
+            _push(res_g, u, v, s, t, active_nodes)
+
+        if res_g.nodes[u] > 0:
+            _relabel(res_g, u)
+            active_nodes.append(u)
 
     return res_g.nodes[t]['excess']
 
@@ -160,15 +160,15 @@ def build_residual_graph(g):
 
 
 if __name__ == '__main__':
-    g = Graph(size=5)
+    g_ex = Graph(size=5)
 
-    g.add_edge(0, 1, cap=12)
-    g.add_edge(0, 2, cap=14)
-    g.add_edge(1, 2, cap=5)
-    g.add_edge(1, 3, cap=8)
-    g.add_edge(2, 3, cap=8)
-    g.add_edge(3, 4, cap=10)
-    g.add_edge(1, 4, cap=16)
-    g.add_edge(3, 1, cap=7)
+    g_ex.add_edge(0, 1, cap=12)
+    g_ex.add_edge(0, 2, cap=14)
+    g_ex.add_edge(1, 2, cap=5)
+    g_ex.add_edge(1, 3, cap=8)
+    g_ex.add_edge(2, 3, cap=8)
+    g_ex.add_edge(3, 4, cap=10)
+    g_ex.add_edge(1, 4, cap=16)
+    g_ex.add_edge(3, 1, cap=7)
 
-    push_relabel(g, s=0, t=4)
+    push_relabel(g_ex, s=0, t=4)
