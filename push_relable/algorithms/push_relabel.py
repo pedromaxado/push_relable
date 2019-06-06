@@ -26,13 +26,14 @@ def _is_edge_valid(res_g, u, v):
     return residual_cap > 0 and res_g.nodes[u]['height'] == res_g.nodes[v]['height'] + 1
 
 
-def _init_preflow(res_g, s, active_nodes):
+def _init_preflow(res_g, s, t, active_nodes):
     """
 
     Parameters
     ----------
     res_g : Graph
     s : int
+    t : int
     active_nodes : (list)
 
     Returns
@@ -46,7 +47,8 @@ def _init_preflow(res_g, s, active_nodes):
         res_g.nodes[v]['excess'] = res_g.adj[s][v]['cap']
         res_g.nodes[s]['excess'] = res_g.nodes[s]['excess'] - res_g.adj[s][v]['cap']
 
-        active_nodes.append(v)
+        if v != t:
+            active_nodes.append(v)
 
 
 def _init_height(res_g, s, t):
@@ -128,7 +130,7 @@ def push_relabel(g, s, t):
 
     active_nodes = []
 
-    _init_preflow(res_g, s, active_nodes)
+    _init_preflow(res_g, s, t, active_nodes)
     _init_height(res_g, s, t)
 
     while active_nodes:
