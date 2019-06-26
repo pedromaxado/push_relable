@@ -12,7 +12,7 @@ GRAPH_OUT_PATH = "/tmp/graph.txt"
 
 
 def generate_graph_file(n, m):
-    os.system(GRAPH_GEN_PATH + " -u -k -e " + str(m) + " " + str(n) + " > " + GRAPH_OUT_PATH)
+    os.system(GRAPH_GEN_PATH + " -u -d -k -e " + str(m) + " " + str(n) + " > " + GRAPH_OUT_PATH)
 
 
 def read_graph_from_file(n):
@@ -22,7 +22,7 @@ def read_graph_from_file(n):
     with open(GRAPH_OUT_PATH, "r") as fp:
         for line in fp:
             e = list(map(int, line.strip().split(' ')))
-            g.add_edge(u=e[0], v=e[1], cap=1)
+            g.add_edge(u=e[0], v=e[1], cap=e[2])
 
     # pprint(g.edges)
 
@@ -34,14 +34,10 @@ def time_push_relabel(n, m):
     generate_graph_file(n, m)
     g = read_graph_from_file(n)
 
-    s = np.random.randint(0, n)
-    t = np.random.randint(0, n)
-
-    # while s == t:
-    #     t = np.random.randint(0, n)
+    st = np.random.choice(n, 2, replace=False)
 
     start = timer()
-    max_flow = push_relabel(g=g, s=0, t=n-1)
+    max_flow = push_relabel(g=g, s=st[0], t=st[1])
     end = timer() - start
 
     return end
@@ -49,28 +45,44 @@ def time_push_relabel(n, m):
 
 def plot_all_the_crap(x, y):
 
-    for y_values in y:
-        plt.plot(x, y_values, '--')
+    d = 0.1
 
+    for y_values in y:
+        plt.plot(x, y_values, '--', label="d = {:.2f}".format(d))
+        d += 0.1
+
+    plt.xlabel('Número de vértices')
+    plt.ylabel('Tempo de execução (s)')
+    plt.legend()
+
+    plt.savefig('/home/pedro/exec_time.eps', format='eps', dpi=1000)
     plt.show()
 
 
 def plot_all_the_crap_log(x, y):
 
+    d = 0.1
     x_log = np.log(np.array(x))
 
     for y_values in y:
-        plt.plot(x_log, np.log(y_values), '--')
+        plt.plot(x_log, np.log(y_values), '--', label="d = {:.2f}".format(d))
+        d += 0.1
 
+    plt.xlabel('Número de vértices')
+    plt.ylabel('Tempo de execução (s)')
+    plt.legend()
+
+    plt.savefig('/home/pedro/exec_time_log.eps', format='eps', dpi=1000)
     plt.show()
 
 
 def run_benchmark():
 
-    max_n = 6
-    max_rep = 10
+    min_n = 1
+    max_n = 11
+    max_rep = 15
 
-    v_sizes = [i*10 for i in range(1, max_n)]
+    v_sizes = [i*10 for i in range(min_n, max_n)]
     densities = [0.1*i for i in range(1, 11)]
 
     y_values = []
@@ -82,7 +94,7 @@ def run_benchmark():
 
         for n in v_sizes:
             print("n="+str(n), end="")
-            m = max(int((n*(n-1)/2)*d), n-1)
+            m = max(int((n*(n-1))*d), n-1)
 
             avg = 0
 
