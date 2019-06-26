@@ -84,7 +84,7 @@ def _init_height(res_g, s, t):
     res_g.nodes[s]['height'] = res_g.size
 
 
-def _push(res_g, u, v, s, t, active_nodes):
+def _push(res_g, u, v, s, t, nodes_queue, active_nodes):
 
     edge = res_g.adj[u][v]
 
@@ -93,8 +93,9 @@ def _push(res_g, u, v, s, t, active_nodes):
     res_g.adj[u][v]['flow'] += amount
     res_g.adj[v][u]['flow'] -= amount
 
-    if res_g.nodes[v]['excess'] == 0 and v not in [s, t]:
-        active_nodes.append(v)
+    if res_g.nodes[v]['excess'] == 0 and v not in [s, t] and not active_nodes[v]:
+        nodes_queue.append(v)
+        active_nodes[v] = True
 
     res_g.nodes[u]['excess'] -= amount
     res_g.nodes[v]['excess'] += amount
@@ -128,22 +129,27 @@ def push_relabel(g, s, t):
 
     res_g = build_residual_graph(g)
 
-    active_nodes = []
+    nodes_queue = []
+    active_nodes = [False] * g.size
 
-    _init_preflow(res_g, s, t, active_nodes)
+    _init_preflow(res_g, s, t, nodes_queue)
     _init_height(res_g, s, t)
 
-    while active_nodes:
+    while nodes_queue:
 
-        u = active_nodes.pop(0)
+        u = nodes_queue.pop(0)
+        active_nodes[u] = False
 
         for v in res_g.adj[u]:
             if _is_edge_valid(res_g, u, v):
-                _push(res_g, u, v, s, t, active_nodes)
+                _push(res_g, u, v, s, t, nodes_queue, active_nodes)
 
         if res_g.nodes[u]['excess'] > 0:
             _relabel(res_g, u)
-            active_nodes.append(u)
+
+            if not active_nodes[u]:
+                nodes_queue.append(u)
+                active_nodes[u] = True
 
     return res_g.nodes[t]['excess']
 
