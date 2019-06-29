@@ -3,36 +3,25 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pprint import pprint
 from timeit import default_timer as timer
+from push_relable.utils import generate_digraph
 from push_relable.classes import Graph
 from push_relable.algorithms import push_relabel
 
 
-GRAPH_GEN_PATH = "/home/pedro/Dropbox/MatComp/3-periodo/AEDS-III/TPs/tp1/tests/graph.py"
-GRAPH_OUT_PATH = "/tmp/graph.txt"
-
-
-def generate_graph_file(n, m):
-    os.system(GRAPH_GEN_PATH + " -u -d -k -e " + str(m) + " " + str(n) + " > " + GRAPH_OUT_PATH)
-
-
-def read_graph_from_file(n):
+def read_graph_from_generator(n, edges):
 
     g = Graph(size=n)
 
-    with open(GRAPH_OUT_PATH, "r") as fp:
-        for line in fp:
-            e = list(map(int, line.strip().split(' ')))
-            g.add_edge(u=e[0], v=e[1], cap=e[2])
-
-    # pprint(g.edges)
+    for e in edges:
+        g.add_edge(u=e[0], v=e[1], cap=e[2])
 
     return g
 
 
 def time_push_relabel(n, m):
 
-    generate_graph_file(n, m)
-    g = read_graph_from_file(n)
+    edges = generate_digraph(n, m)
+    g = read_graph_from_generator(n, edges)
 
     st = np.random.choice(n, 2, replace=False)
 
@@ -79,7 +68,7 @@ def plot_all_the_crap_log(x, y):
 def run_benchmark():
 
     min_n = 1
-    max_n = 11
+    max_n = 16
     max_rep = 15
 
     v_sizes = [i*10 for i in range(min_n, max_n)]
@@ -96,7 +85,7 @@ def run_benchmark():
             print("n="+str(n), end="")
             m = max(int((n*(n-1))*d), n-1)
 
-            avg = 0
+            avg = 0.0
 
             for i in range(max_rep):
                 avg += time_push_relabel(n, m)
@@ -105,6 +94,11 @@ def run_benchmark():
             print(", time="+str(avg))
 
             y_values[-1].append(avg)
+
+    with open('/home/pedro/test_data.txt', 'w') as fp:
+        fp.writelines(str(v_sizes))
+        fp.writelines("\n")
+        fp.writelines(str(y_values))
 
     plot_all_the_crap(v_sizes, y_values)
     plot_all_the_crap_log(v_sizes, y_values)
